@@ -3,11 +3,11 @@ import uuid
 
 from django.contrib.auth.models import User as DjoserUser
 from django.core.files.base import ContentFile
-from django.shortcuts import get_object_or_404
-from foodgram_backend.constants import NAME_LENGTH, REGISTRATION_NAME
-from recipe.models import Recipe
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
+
+from foodgram_backend.constants import NAME_LENGTH, REGISTRATION_NAME
+from recipe.models import Recipe
 
 from .models import Subscription, User, UserProfile
 
@@ -40,11 +40,18 @@ class AvatarSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ["avatar"]
 
+    def update(self, instance, validated_data):
+        avatar = validated_data.get("avatar", instance.avatar)
+        instance.avatar = avatar
+        instance.save()
+        return instance
+
 
 class AuthorSerializer(serializers.ModelSerializer):
     """Сериализатор автора."""
 
     is_subscribed = serializers.SerializerMethodField()
+    avatar = Base64ImageField(source="profile.avatar")
 
     class Meta:
         model = User
@@ -55,6 +62,7 @@ class AuthorSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
+            "avatar"
         ]
 
     def get_is_subscribed(self, obj):
@@ -65,17 +73,26 @@ class AuthorSerializer(serializers.ModelSerializer):
         return False
 
 
-class SubscribeSerializator(serializers.ModelSerializer):
-    """Сериализатор подписок."""
-
+class SubscribeReadSerializator(serializers.ModelSerializer):
+    """Сериализатор вывода информации о подписках."""
+    is_subscribed = serializers.SerializerMethodField()
+    avatar = Base64ImageField(source="profile.avatar")
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.IntegerField(
-        source="author.recipes.count", read_only=True
-    )
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = Subscription
-        fields = ["id", "author", "recipes", "recipes_count"]
+        model = User
+        fields = [
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "avatar",
+            "recipes",
+            "recipes_count"
+        ]
 
     def get_recipes(self, obj):
         request = self.context.get("request")
@@ -83,10 +100,35 @@ class SubscribeSerializator(serializers.ModelSerializer):
             return []
 
         limit = request.query_params.get("recipes_limit")
-        recipes = obj.author.recipes.all()
+        recipes = obj.recipes.all()
         if limit:
             recipes = recipes[: int(limit)]
-        return RecipeShortSerializer(recipes, many=True).dat
+        return RecipeShortSerializer(recipes, many=True).data
+
+    def get_is_subscribed(self, obj):
+        """Проверяет, подписан ли текущий пользователь на автора."""
+        user = self.context["request"].user
+        if user.is_authenticated:
+            return user.subscriptions.filter(author=obj).exists()
+        return False
+
+    def get_recipes_count(self, obj):
+        return len(obj.recipes.all())
+
+
+class SubscribeSerializator(serializers.ModelSerializer):
+    """Сериализатор подписок."""
+
+    class Meta:
+        model = Subscription
+        fields = ["__all__"]
+
+    def to_representation(self, instance):
+        """Репрезентация данных."""
+        serializer = SubscribeReadSerializator(
+            instance.author, context=self.context
+        )
+        return serializer.data
 
 
 class CustomUserCreateSerializer(serializers.ModelSerializer):

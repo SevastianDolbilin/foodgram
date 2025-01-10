@@ -1,26 +1,22 @@
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse
-from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from django.shortcuts import get_object_or_404
-from recipe.models import Recipe
-from recipe.paginations import CustomPagination
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from shopping.models import Favorite, ShoppingCart
-from shopping.serializers import FavoriteSerializer, ShoppingCartSerializer
+
+from recipe.paginations import CustomPagination
 
 from .models import Subscription
-from .serializers import AuthorSerializer, SubscribeSerializator
+from .serializers import (AuthorSerializer, AvatarSerializer,
+                          SubscribeSerializator)
+
 
 User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-    """Кастомный вьюсет для реализации функций подписки через djoser."""
+    """Кастомный вьюсет для модели пользователей."""
     queryset = User.objects.all()
     serializer_class = AuthorSerializer
     pagination_class = CustomPagination
@@ -55,14 +51,11 @@ class CustomUserViewSet(UserViewSet):
                 {"detail": "Вы уже подписаны на этого автора."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         subscription = Subscription.objects.create(user=user, author=author)
         return Response(
-            {
-                "detail": "Подписка успешно создана.",
-                "subscription": SubscribeSerializator(subscription).data,
-            },
-            status=status.HTTP_201_CREATED,
+            SubscribeSerializator(
+                subscription, context={"request": request}
+            ).data, status=status.HTTP_201_CREATED
         )
 
     @subscribe.mapping.delete
@@ -89,4 +82,53 @@ class CustomUserViewSet(UserViewSet):
         user = request.user
         serializer = AuthorSerializer(user, context={"request": request})
         return Response(serializer.data)
+
+    @action(detail=False, methods=["put", "delete"], url_path="me/avatar")
+    def avatar(self, request):
+        user = request.user
+        user_profile = user.profile
+
+        if request.method == "DELETE":
+            if user_profile.avatar:
+                user_profile.avatar.delete(save=False)
+                user_profile.avatar = None
+                user_profile.save()
+                return Response(
+                    {
+                        "detail": "Аватар удален."
+                    },
+                    status=status.HTTP_204_NO_CONTENT
+                )
+            return Response(
+                {"detail": "Аватар отсутствует."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if "avatar" not in request.data:
+            return Response(
+                {
+                    "error": "Поле avatar обязательно к заполнению."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = AvatarSerializer(
+            instance=user_profile,
+            data=request.data,
+            partial=True,
+            context={"request": request}
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+
+            avatar_url = request.build_absolute_uri(
+                user_profile.avatar.url
+            ) if user_profile.avatar else None
+            response_data = {
+                "avatar": avatar_url
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

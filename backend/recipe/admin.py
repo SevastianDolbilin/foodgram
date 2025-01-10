@@ -1,5 +1,5 @@
-from django import forms
 from django.contrib import admin
+
 from foodgram_backend.constants import VALIDATOR_COUNT
 from shopping.models import Favorite
 
@@ -20,7 +20,7 @@ class RecipeIngredientInline(admin.TabularInline):
 class RecipeAdmin(admin.ModelAdmin):
     """Админ модель рецептов."""
 
-    list_display = ("name", "author", "favorites_count")
+    list_display = ("id", "name", "author", "favorites_count")
     search_fields = ("name", "author__username")
     list_filter = ("tags",)
     readonly_fields = ("favorites_count",)

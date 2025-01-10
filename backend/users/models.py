@@ -1,7 +1,4 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
-from django.core.validators import MinValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -10,13 +7,13 @@ User = get_user_model()
 class Subscription(models.Model):
     """Модель подписки."""
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name="subscriptions",
         verbose_name="Подписка"
     )
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name="followers",
         verbose_name="Автор"
@@ -40,8 +37,10 @@ class Subscription(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="profile"
+    )
+    avatar = models.ImageField(upload_to="users/", blank=True, null=True)
 
     def __str__(self):
         return f"Profile of {self.user.username}"

@@ -2,13 +2,14 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from recipe.models import Recipe
-from recipe.serializers import RecipeWriteSerializer
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from recipe.models import Recipe
+from recipe.serializers import RecipeWriteSerializer
 
 from .models import Favorite, ShoppingCart
 from .serializers import FavoriteSerializer, ShoppingCartSerializer
@@ -82,7 +83,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     permissions_classes = [IsAuthenticated]
 
     def create(self, request, recipe_id=None):
-        """Добавляет рецепт в избьранное."""
+        """Добавляет рецепт в избранное."""
         recipe = get_object_or_404(Recipe, id=recipe_id)
         user = request.user
 

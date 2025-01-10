@@ -1,8 +1,7 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.utils import timezone
+
 from foodgram_backend.constants import (NAME_LENGTH, UNIT_LENGTH,
                                         VALIDATOR_COUNT)
 
@@ -60,12 +59,13 @@ class Recipe(models.Model):
         verbose_name="Автор"
     )
     name = models.TextField(max_length=NAME_LENGTH, verbose_name="Название")
-    image = models.ImageField()
+    image = models.ImageField(upload_to="recipes/")
     text = models.TextField(verbose_name="Описание")
     ingredients = models.ManyToManyField(
         Ingredient,
         through="RecipeIngredient",
         related_name="recipes",
+        through_fields=("recipe", "ingredient"),
         verbose_name="Ингридиенты"
     )
     tags = models.ManyToManyField(
@@ -74,7 +74,9 @@ class Recipe(models.Model):
         verbose_name="Теги"
     )
     cooking_time = models.PositiveIntegerField(
-        verbose_name="Время приготовления (минуты)"
+        verbose_name="Время приготовления (минуты)",
+        validators=[MinValueValidator(VALIDATOR_COUNT)],
+        help_text="Минимальное время приготовление - 1 минута."
     )
 
     class Meta:
@@ -90,7 +92,8 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name="recipe_ingredients"
+        related_name="recipe_ingredients",
+        verbose_name="Рецепты"
     )
     ingredient = models.ForeignKey(
         Ingredient,
@@ -116,4 +119,3 @@ class RecipeIngredient(models.Model):
     def __str__(self):
         return f"{self.ingredient.name} — {self.amount} " \
                f"{self.ingredient.measurement_unit}"
-

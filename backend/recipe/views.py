@@ -1,20 +1,18 @@
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.decorators import action
-from rest_framework import status
-
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from .filters import RecipeFilter
 from .models import Ingredient, Recipe, Tag
-from .serializers import (
-    IngredientSerializer,
-    RecipeWriteSerializer,
-    TagSerializer,
-    RecipeReadSerializer,
-)
+from .permissions import Administrator, Anonymous, Author, IsAuthorOrAdminForPatch
+from .serializers import (IngredientSerializer, RecipeSerializer,
+                          RecipeWriteSerializer, TagSerializer)
+
 
 User = get_user_model()
 
@@ -24,6 +22,8 @@ class BaseViewSet(
     mixins.ListModelMixin,
     GenericViewSet
 ):
+    permission_classes = [AllowAny]
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
@@ -53,13 +53,38 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
+    def update(self, request, *args, **kwargs):
+        """Переопределенный метод update."""
+        recipe = self.get_object()
+        if request.method == "PATCH" and recipe.author != request.user:
+            raise PermissionDenied("Вы не можете редактировать чужой рецепт.")
+        if "ingredients" not in request.data:
+            raise ValidationError(
+                "Поле ingredients обязательно для заполнения."
+            )
+        if "tags" not in request.data:
+            raise ValidationError(
+                "Поле tags обязательно для заполнения."
+            )
+        return super().update(request, *args, **kwargs)
+
+    def get_permissions(self):
+        """Получение разрешения в зависимости от типа запроса."""
+        if self.request.method in ["POST", "PUT"]:
+            permission_classes = [IsAuthenticated]
+        elif self.request.method in ["DELETE", "PATCH"]:
+            permission_classes = [Author | Administrator]
+        else:
+            permission_classes = [Anonymous]
+        return [permission() for permission in permission_classes]
+
     def get_serializer_class(self):
         """Возвращаем разные сериализаторы для чтения и записи."""
         if self.action in ["create", "update", "partial_update"]:
             return RecipeWriteSerializer
-        return RecipeReadSerializer
+        return RecipeSerializer
 
-    @action(detail=True, methods=["delete"],url_path="delete-image")
+    @action(detail=True, methods=["delete"], url_path="delete-image")
     def delete_image(self, request, pk=None):
         """Удаление изображения из рецепта."""
         recipe = self.get_object()
