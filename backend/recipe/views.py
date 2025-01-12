@@ -1,15 +1,19 @@
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import HttpResponse
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+from shopping.models import ShoppingCart
 
 from .filters import RecipeFilter
 from .models import Ingredient, Recipe, Tag
-from .permissions import Administrator, Anonymous, Author, IsAuthorOrAdminForPatch
+from .permissions import Administrator, Anonymous, Author
 from .serializers import (IngredientSerializer, RecipeSerializer,
                           RecipeWriteSerializer, TagSerializer)
 
@@ -56,7 +60,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """Переопределенный метод update."""
         recipe = self.get_object()
-        if request.method == "PATCH" and recipe.author != request.user:
+        if recipe.author != request.user:
             raise PermissionDenied("Вы не можете редактировать чужой рецепт.")
         if "ingredients" not in request.data:
             raise ValidationError(
@@ -67,6 +71,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 "Поле tags обязательно для заполнения."
             )
         return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """Переопределенный метод destroy (для коррекции разрешений)."""
+        recipe = self.get_object()
+        if recipe.author != request.user:
+            raise PermissionDenied("Вы не можете удалить чужой рецепт.")
+        return super().destroy(request, *args, **kwargs)
 
     def get_permissions(self):
         """Получение разрешения в зависимости от типа запроса."""
@@ -95,3 +106,36 @@ class RecipeViewSet(viewsets.ModelViewSet):
             {"detail": "Изображение удалено."},
             status=status.HTTP_204_NO_CONTENT
         )
+
+    @action(detail=True, methods=["get"], url_path="get-link")
+    def get_link(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        base_url = settings.BASE_URL
+        short_link = f"{base_url}/r/{recipe.id}"
+
+        return Response({"short-link": short_link}, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False, methods=["get"], url_path="download_shopping_cart"
+    )
+    def download_shopping_cart(self, request):
+        """Скачать список покуп в формате ТХТ."""
+        shopping_cart = ShoppingCart.objects.filter(user=request.user)
+
+        if not shopping_cart:
+            return Response(
+                {"detail": "Список покупок пуст."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        shopping_list = [
+            f"{item.recipe.name}"
+            f"({item.recipe.cooking_time} мин\n)" for item in shopping_cart
+        ]
+        response = HttpResponse(
+            "\n".join(shopping_list),
+            content_type="text/plain"
+        )
+        response["Content-Disposition"] = (
+            'attachment filename="shopping_cart.txt"'
+        )
+        return response

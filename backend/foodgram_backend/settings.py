@@ -122,3 +122,4 @@ DJOSER = {
     'USER_EMAIL_FIELD': 'email',
     'LOGIN_FIELD': 'email',
 }
+BASE_URL = "http://127.0.0.1:8000"

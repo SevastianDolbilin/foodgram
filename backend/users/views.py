@@ -34,7 +34,7 @@ class CustomUserViewSet(UserViewSet):
         serializer = AuthorSerializer(instance, context={"request": request})
         return Response(serializer.data)
 
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=["post"])
     def subscribe(self, request, id=None):
         """Подписка на пользователя."""
         user = self.request.user
@@ -132,3 +132,16 @@ class CustomUserViewSet(UserViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=["get"], url_path="subscriptions")
+    def subscriptions(self, request):
+        """Получение списка подписок текущего пользователя."""
+        user = request.user
+        subscriptions = Subscription.objects.filter(user=user)
+
+        paginator = CustomPagination()
+        page = paginator.paginate_queryset(subscriptions, request)
+        serializer = SubscribeSerializator(
+            page, many=True, context={"request": request}
+        )
+
+        return paginator.get_paginated_response(serializer.data)

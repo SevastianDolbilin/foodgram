@@ -1,16 +1,26 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+from django.shortcuts import redirect, get_object_or_404
 
 from shopping.views import FavoriteViewSet, ShoppingCartViewSet
 from users.views import CustomUserViewSet
 
 from .views import IngredientViewSet, RecipeViewSet, TagViewSet
+from .models import Recipe
 
 router = DefaultRouter()
 router.register("tags", TagViewSet, basename="tag")
 router.register("ingredients", IngredientViewSet, basename="ingredient")
 router.register("recipes", RecipeViewSet, basename="recipe")
 router.register("users", CustomUserViewSet, basename="user")
+
+
+def short_link_redirect(request, recipe_id):
+    """
+    Редиректит с короткой ссылки на полную страницу рецепта.
+    """
+    recipe = get_object_or_404(Recipe, pk=recipe_id)
+    return redirect(f"/recipes/{recipe.id}/")
 
 
 urlpatterns = [
@@ -22,13 +32,18 @@ urlpatterns = [
         name="signup",
     ),
     path(
-        "api/recipes/<int:recipe_id>/shopping_carts/",
-        ShoppingCartViewSet.as_view({"post": "create"}),
+        "recipes/<int:recipe_id>/shopping_cart/",
+        ShoppingCartViewSet.as_view({"post": "create", "delete": "destroy"}),
         name="recipe-shopping-cart",
     ),
     path(
-        "api/recipes/<int:recipe_id>/favorite/",
+        "recipes/<int:recipe_id>/favorite/",
         FavoriteViewSet.as_view({"post": "create", "delete": "destroy"}),
         name="recipe-favorite",
+    ),
+    path(
+        "api/recipes/<int:recipe_id>/get-link",
+        short_link_redirect,
+        name="short_link_redirect"
     ),
 ]

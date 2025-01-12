@@ -11,7 +11,7 @@ User = get_user_model()
 class Favorite(models.Model):
     """Модель избранного."""
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name="favorites",
         verbose_name="Пользователь"
@@ -19,7 +19,7 @@ class Favorite(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name="in_favorites",
+        related_name="favorite",
         verbose_name="рецепт"
     )
     added_at = models.DateTimeField(
@@ -51,7 +51,7 @@ class ShoppingCart(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name="in_carts",
+        related_name="shoppingcart",
     )
 
     class Meta:
