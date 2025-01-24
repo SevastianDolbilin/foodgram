@@ -103,7 +103,7 @@ class CustomUserViewSet(UserViewSet):
                 {"detail": "Аватар отсутствует."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         if "avatar" not in request.data:
             return Response(
                 {

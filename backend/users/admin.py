@@ -13,7 +13,7 @@ admin.site.unregister(User)
 @admin.register(User)
 class UserAdmin(DefaultUserAdmin):
     """Настройка отображения пользователей в админке."""
-    
+
     list_display = (
         "id", "username", "email", "first_name", "last_name", "is_active"
     )

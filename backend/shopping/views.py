@@ -1,18 +1,14 @@
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from recipe.models import Recipe
-from recipe.serializers import RecipeWriteSerializer
 from users.serializers import RecipeShortSerializer
 
 from .models import Favorite, ShoppingCart
-from .serializers import FavoriteSerializer, ShoppingCartSerializer
 
 User = get_user_model()
 
@@ -32,7 +28,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         ShoppingCart.objects.create(user=request.user, recipe=recipe)
-        serializer = RecipeShortSerializer(recipe, context={"request": request})
+        serializer = RecipeShortSerializer(
+            recipe, context={"request": request}
+        )
         return Response(
             serializer.data, status=status.HTTP_201_CREATED
         )

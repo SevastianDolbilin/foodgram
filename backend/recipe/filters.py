@@ -4,7 +4,9 @@ from .models import Recipe
 
 
 class RecipeFilter(filters.FilterSet):
-    """Кастомный фильтр для фильтрации по тегам, авторам, спискам покупок и избранным."""
+    """
+    Фильтр для фильтрации по тегам, авторам, спискам покупок и избранным.
+    """
 
     author = filters.NumberFilter(field_name="author__id", lookup_expr="exact")
     tags = filters.CharFilter(
