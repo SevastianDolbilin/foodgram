@@ -2,9 +2,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.response import Response
 
+from foodgram_backend.constants import VALIDATOR_COUNT
 from shopping.models import Favorite, ShoppingCart
 from users.serializers import AuthorSerializer, Base64ImageField
-from foodgram_backend.constants import VALIDATOR_COUNT
 
 from .models import Ingredient, Recipe, RecipeIngredient, Tag
 

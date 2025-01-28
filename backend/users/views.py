@@ -11,7 +11,6 @@ from .models import Subscription
 from .serializers import (AuthorSerializer, AvatarSerializer,
                           SubscribeSerializator)
 
-
 User = get_user_model()
 
 

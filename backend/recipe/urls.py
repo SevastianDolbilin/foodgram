@@ -1,12 +1,12 @@
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from django.shortcuts import redirect, get_object_or_404
 
 from shopping.views import FavoriteViewSet, ShoppingCartViewSet
 from users.views import CustomUserViewSet
 
-from .views import IngredientViewSet, RecipeViewSet, TagViewSet
 from .models import Recipe
+from .views import IngredientViewSet, RecipeViewSet, TagViewSet
 
 router = DefaultRouter()
 router.register("tags", TagViewSet, basename="tag")
