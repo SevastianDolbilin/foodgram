@@ -40,7 +40,7 @@ services:
       - static_volume:/staticfiles
       - media_product:/app/media
     ports:
-      - 80:80
+      - 90:80
     depends_on:
       - backend
       - frontend
