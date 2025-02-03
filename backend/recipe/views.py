@@ -56,6 +56,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
+    @action(detail=True, methods=["put", "patch"], url_path="edit")
     def update(self, request, *args, **kwargs):
         """Переопределенный метод update."""
         recipe = self.get_object()
@@ -66,9 +67,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 "Поле ingredients обязательно для заполнения."
             )
         if "tags" not in request.data:
-            raise ValidationError(
-                "Поле tags обязательно для заполнения."
-            )
+            raise ValidationError("Поле tags обязательно для заполнения.")
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
@@ -80,10 +79,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Получение разрешения в зависимости от типа запроса."""
-        if self.request.method in ["POST", "PUT"]:
+        if self.request.method in ["POST", "PUT", "PATCH"]:
             permission_classes = [IsAuthenticated]
-        elif self.request.method in ["DELETE", "PATCH"]:
-            permission_classes = [Author | Administrator]
+        elif self.request.method == "DELETE":
+            permission_classes = [Author, Administrator]
         else:
             permission_classes = [Anonymous]
         return [permission() for permission in permission_classes]
@@ -108,33 +107,40 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
+        """Создание короткой ссылки на рецепт."""
         recipe = get_object_or_404(Recipe, pk=pk)
-        base_url = settings.BASE_URL
-        short_link = f"{base_url}/r/{recipe.id}"
+        short_link = request.build_absolute_uri(f"/r/{recipe.id}")
 
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
-    @action(
-        detail=False, methods=["get"], url_path="download_shopping_cart"
-    )
+    @action(detail=False, methods=["get"], url_path="download_shopping_cart")
     def download_shopping_cart(self, request):
-        """Скачать список покуп в формате ТХТ."""
+        """Скачать список покупок в формате TXT."""
         shopping_cart = ShoppingCart.objects.filter(user=request.user)
 
-        if not shopping_cart:
+        if not shopping_cart.exists():
             return Response(
                 {"detail": "Список покупок пуст."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        shopping_list = [
-            f"{item.recipe.name}"
-            f"({item.recipe.cooking_time} мин\n)" for item in shopping_cart
-        ]
+
+        shopping_list = []
+        for item in shopping_cart:
+            ingredients = ", ".join(
+                (
+                    f"{ingredient.name} - {ingredient.amount} "
+                    f"{ingredient.measurement_unit}"
+                )
+                for ingredient in item.recipe.ingredients.all()
+            )
+            shopping_list.append(
+                f"{ingredients} ({item.recipe.cooking_time} мин)"
+            )
+
         response = HttpResponse(
-            "\n".join(shopping_list),
-            content_type="text/plain"
+            "\n".join(shopping_list), content_type="text/plain"
         )
-        response["Content-Disposition"] = (
-            'attachment filename="shopping_cart.txt"'
-        )
+        response[
+            "Content-Disposition"
+        ] = 'attachment; filename="shopping_cart.txt"'
         return response
