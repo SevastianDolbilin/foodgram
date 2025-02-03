@@ -1,5 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import include, path, reverse
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from shopping.views import FavoriteViewSet, ShoppingCartViewSet
 from users.views import CustomUserViewSet

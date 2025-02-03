@@ -114,7 +114,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
-
     @action(detail=False, methods=["get"], url_path="download_shopping_cart")
     def download_shopping_cart(self, request):
         """Скачать список покупок в формате TXT."""
