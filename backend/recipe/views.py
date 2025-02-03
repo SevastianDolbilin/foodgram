@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.urls import reverse
@@ -9,8 +11,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from shopping.models import ShoppingCart
-from collections import defaultdict
-
 
 from .filters import RecipeFilter
 from .models import Ingredient, Recipe, Tag
