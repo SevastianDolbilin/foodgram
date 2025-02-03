@@ -108,9 +108,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         """Создание короткой ссылки на рецепт."""
         recipe = get_object_or_404(Recipe, pk=pk)
-        short_link = request.build_absolute_uri(reverse(
+        short_link = request.build_absolute_uri(
             "recipe", kwargs={"pk": recipe.id}
-        ))
+        )
 
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
