@@ -55,7 +55,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-    @action(detail=True, methods=["put", "patch"], url_path="edit")
     def update(self, request, *args, **kwargs):
         """Переопределенный метод update."""
         recipe = self.get_object()
