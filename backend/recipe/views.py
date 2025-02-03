@@ -1,11 +1,10 @@
-from collections import defaultdict
-
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.urls import reverse
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
-from rest_framework.decorators import action, permission_classes
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -105,71 +104,36 @@ class RecipeViewSet(viewsets.ModelViewSet):
             status=status.HTTP_204_NO_CONTENT
         )
 
-    @action(
-        methods=['get'],
-        detail=True,
-        url_path='get-link',
-        url_name='get-link',
-    )
+    @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
-        """Получение короткой ссылки на рецепт"""
-        self.get_object()
-        original_url = request.META.get('HTTP_REFERER')
-        if original_url is None:
-            url = reverse('api:recipe-detail', kwargs={'pk': pk})
-            original_url = request.build_absolute_uri(url)
-        serializer = self.get_serializer(
-            data={'original_url': original_url},
-            context={'request': request},
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        recipe = get_object_or_404(Recipe, pk=pk)
+        base_url = settings.BASE_URL
+        short_link = f"{base_url}/r/{recipe.id}"
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=["get"], url_path="download_shopping_cart")
-    @permission_classes([IsAuthenticated])
+    @action(
+        detail=False, methods=["get"], url_path="download_shopping_cart"
+    )
     def download_shopping_cart(self, request):
-        """Скачать список покупок в формате TXT."""
+        """Скачать список покуп в формате ТХТ."""
         shopping_cart = ShoppingCart.objects.filter(user=request.user)
 
-        if not shopping_cart.exists():
+        if not shopping_cart:
             return Response(
                 {"detail": "Список покупок пуст."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        ingredients_dict = defaultdict(lambda: {"amount": 0, "unit": ""})
-
-        shopping_list = []
-
-        for item in shopping_cart:
-            recipe = item.recipe
-            shopping_list.append(
-                f"Рецепт: {recipe.name} ({recipe.cooking_time} мин)"
-            )
-
-            for ingredient in recipe.ingredients.all():
-                key = ingredient.name
-                if key in ingredients_dict:
-                    ingredients_dict[key][
-                        "amount"
-                    ] += ingredient.recipeingredient.amount
-                else:
-                    ingredients_dict[key] = {
-                        "amount": ingredient.recipeingredient.amount,
-                        "unit": ingredient.measurement_unit,
-                    }
-
-        # Формируем текстовый файл
-        shopping_list.append("\nОбщий список покупок:")
-        for name, data in ingredients_dict.items():
-            shopping_list.append(f"- {name}: {data['amount']} {data['unit']}")
-
+        shopping_list = [
+            f"{item.recipe.ingredients}"
+            f"({item.recipe.cooking_time} мин\n)" for item in shopping_cart
+        ]
         response = HttpResponse(
-            "\n".join(shopping_list), content_type="text/plain"
+            "\n".join(shopping_list),
+            content_type="text/plain"
         )
-        response[
-            "Content-Disposition"
-        ] = 'attachment; filename="shopping_cart.txt"'
+        response["Content-Disposition"] = (
+            'attachment filename="shopping_cart.txt"'
+        )
         return response
+
