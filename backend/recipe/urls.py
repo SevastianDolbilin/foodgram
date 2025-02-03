@@ -14,14 +14,6 @@ router.register("recipes", RecipeViewSet, basename="recipe")
 router.register("users", CustomUserViewSet, basename="user")
 
 
-def short_link_redirect(request, recipe_id):
-    """
-    Редиректит с короткой ссылки на полную страницу рецепта.
-    """
-    recipe = get_object_or_404(Recipe, pk=recipe_id)
-    return redirect(reverse("recipe_detail", kwargs={"pk": recipe.id}))
-
-
 urlpatterns = [
     path("", include(router.urls)),
 

@@ -109,10 +109,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Создание короткой ссылки на рецепт."""
         recipe = get_object_or_404(Recipe, pk=pk)
         short_link = request.build_absolute_uri(reverse(
-            "recipe-detail", kwargs={"id": recipe.id}
+            "recipes-detail", kwargs={"pk": recipe.id}
         ))
 
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
+
 
     @action(detail=False, methods=["get"], url_path="download_shopping_cart")
     def download_shopping_cart(self, request):
@@ -130,7 +131,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ingredients = ", ".join(
                 (
                     f"{ingredient.name}",
-                    f"{ingredient.ingredient_recipes.amount}",
+                    f"{ingredient.recipe_ingredients.amount}",
                     f"{ingredient.measurement_unit}"
                 )
                 for ingredient in item.recipe.ingredients.all()
