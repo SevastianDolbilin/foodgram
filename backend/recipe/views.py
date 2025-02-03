@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -111,12 +111,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = self.get_object()
 
         short_link = request.build_absolute_uri(
-            reverse("recipe-detail", kwargs={"pk": recipe.pk})
+            reverse("recipe", kwargs={"pk": recipe.pk})
         )
 
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"], url_path="download_shopping_cart")
+    @permission_classes([IsAuthenticated])
     def download_shopping_cart(self, request):
         """Скачать список покупок в формате TXT."""
         shopping_cart = ShoppingCart.objects.filter(user=request.user)
