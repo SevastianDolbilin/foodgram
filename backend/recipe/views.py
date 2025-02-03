@@ -9,6 +9,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from shopping.models import ShoppingCart
+from django.urls import reverse
+
 
 from .filters import RecipeFilter
 from .models import Ingredient, Recipe, Tag
@@ -107,7 +109,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         """Создание короткой ссылки на рецепт."""
         recipe = get_object_or_404(Recipe, pk=pk)
-        short_link = request.build_absolute_uri(f"/r/{recipe.id}")
+        short_link = request.build_absolute_uri(reverse(
+            "recipe-detail", kwargs={"id": recipe.id}
+        ))
 
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
@@ -126,7 +130,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for item in shopping_cart:
             ingredients = ", ".join(
                 (
-                    f"{ingredient.name} - {ingredient.amount} "
+                    f"{ingredient.name}"
                     f"{ingredient.measurement_unit}"
                 )
                 for ingredient in item.recipe.ingredients.all()

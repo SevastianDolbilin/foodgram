@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import include, path
+from django.urls import include, path, reverse
 from rest_framework.routers import DefaultRouter
 from shopping.views import FavoriteViewSet, ShoppingCartViewSet
 from users.views import CustomUserViewSet
@@ -19,7 +19,7 @@ def short_link_redirect(request, recipe_id):
     Редиректит с короткой ссылки на полную страницу рецепта.
     """
     recipe = get_object_or_404(Recipe, pk=recipe_id)
-    return redirect(f"/recipes/{recipe.id}/")
+    return redirect(reverse("recipe_detail", kwargs={"pk": recipe.id}))
 
 
 urlpatterns = [
@@ -41,7 +41,7 @@ urlpatterns = [
         name="recipe-favorite",
     ),
     path(
-        "api/recipes/<int:recipe_id>/get-link",
+        "api/recipes/<int:recipe_id>/get-link/",
         short_link_redirect,
         name="short_link_redirect"
     ),
