@@ -129,7 +129,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for item in shopping_cart:
             ingredients = ", ".join(
                 (
-                    f"{ingredient.name}",
+                    f"{ingredient.name}"
                     f"{ingredient.measurement_unit}"
                 )
                 for ingredient in item.recipe.ingredients.all()
