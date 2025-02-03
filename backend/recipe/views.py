@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
@@ -119,7 +118,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
     @action(detail=False, methods=["get"], url_path="download_shopping_cart")
     def download_shopping_cart(self, request):
