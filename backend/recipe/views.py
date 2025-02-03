@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
+from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -8,6 +9,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from shopping.models import ShoppingCart
+from collections import defaultdict
+
 
 from .filters import RecipeFilter
 from .models import Ingredient, Recipe, Tag
@@ -105,16 +108,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
         """Создание короткой ссылки на рецепт."""
-        self.get_object()
+        recipe = self.get_object()
+
         short_link = request.build_absolute_uri(
-            "api:recipe-detail", kwargs={"id": id}
+            reverse("recipe-detail", kwargs={"pk": recipe.pk})
         )
-        serializer = self.get_serializer(
-            data={'original_url': short_link},
-            context={'request': request},
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
 
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
@@ -129,23 +127,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        ingredients_dict = defaultdict(lambda: {"amount": 0, "unit": ""})
+
         shopping_list = []
+
         for item in shopping_cart:
-            ingredients = ", ".join(
-                (
-                    f"{ingredient.name}"
-                    f"{ingredient.measurement_unit}"
-                )
-                for ingredient in item.recipe.ingredients.all()
-            )
+            recipe = item.recipe
             shopping_list.append(
-                f"{ingredients} ({item.recipe.cooking_time} мин)"
+                f"Рецепт: {recipe.name} ({recipe.cooking_time} мин)"
             )
+
+            for ingredient in recipe.ingredients.all():
+                key = ingredient.name
+                if key in ingredients_dict:
+                    ingredients_dict[key][
+                        "amount"
+                    ] += ingredient.recipeingredient.amount
+                else:
+                    ingredients_dict[key] = {
+                        "amount": ingredient.recipeingredient.amount,
+                        "unit": ingredient.measurement_unit,
+                    }
+
+        # Формируем текстовый файл
+        shopping_list.append("\nОбщий список покупок:")
+        for name, data in ingredients_dict.items():
+            shopping_list.append(f"- {name}: {data['amount']} {data['unit']}")
 
         response = HttpResponse(
             "\n".join(shopping_list), content_type="text/plain"
         )
-        response[
-            "Content-Disposition"
-        ] = 'attachment; filename="shopping_cart.txt"'
+        response["Content-Disposition"] = 'attachment; filename="shopping_cart.txt"'
         return response
