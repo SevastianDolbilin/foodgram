@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -106,10 +105,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
         """Создание короткой ссылки на рецепт."""
-        recipe = get_object_or_404(Recipe, pk=pk)
+        self.get_object()
         short_link = request.build_absolute_uri(
-            "recipe", kwargs={"pk": recipe.id}
+            "api:recipe-detail", kwargs={"id": id}
         )
+        serializer = self.get_serializer(
+            data={'original_url': short_link},
+            context={'request': request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
