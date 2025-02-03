@@ -40,9 +40,4 @@ urlpatterns = [
         FavoriteViewSet.as_view({"post": "create", "delete": "destroy"}),
         name="recipe-favorite",
     ),
-    path(
-        "api/recipes/<int:recipe_id>/get-link/",
-        short_link_redirect,
-        name="short_link_redirect"
-    ),
 ]

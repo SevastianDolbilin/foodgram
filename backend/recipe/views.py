@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -103,21 +104,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
             status=status.HTTP_204_NO_CONTENT
         )
 
+    @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
-        """Получение короткой ссылки на рецепт"""
-        self.get_object()
-        original_url = request.META.get('HTTP_REFERER')
-        if original_url is None:
-            url = reverse('api:recipe-detail', kwargs={'pk': pk})
-            original_url = request.build_absolute_uri(url)
-        serializer = self.get_serializer(
-            data={'original_url': original_url},
-            context={'request': request},
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        """Создание короткой ссылки на рецепт."""
+        recipe = get_object_or_404(Recipe, pk=pk)
+        short_link = request.build_absolute_uri(reverse(
+            "recipe-detail", kwargs={"id": recipe.id}
+        ))
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"], url_path="download_shopping_cart")
     def download_shopping_cart(self, request):
