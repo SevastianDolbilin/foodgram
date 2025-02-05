@@ -1,6 +1,6 @@
-from api.paginations import CustomPagination
 from django.contrib.auth import get_user_model
 from djoser.views import UserViewSet
+from recipe.paginations import CustomPagination
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated

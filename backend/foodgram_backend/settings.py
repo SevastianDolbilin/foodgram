@@ -21,7 +21,7 @@ INSTALLED_APPS = [
     "django_filters",
     "djoser",
     "users",
-    "api",
+    "recipe",
     "shopping",
 ]
 
@@ -111,7 +111,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
-    "DEFAULT_PAGINATION_CLASS": "api.paginations.CustomPagination",
+    "DEFAULT_PAGINATION_CLASS": "recipe.paginations.CustomPagination",
     "PAGE_SIZE": 6,
 }
 
