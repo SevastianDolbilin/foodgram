@@ -83,7 +83,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ru"
 
 TIME_ZONE = "UTC"
 
@@ -116,11 +116,11 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    'SERIALIZERS': {
-        'user_create': 'users.serializers.CustomUserCreateSerializer',
-        'user': 'users.serializers.CustomUserCreateSerializer',
+    "SERIALIZERS": {
+        "user_create": "users.serializers.CustomUserCreateSerializer",
+        "user": "users.serializers.CustomUserCreateSerializer",
     },
-    'USER_EMAIL_FIELD': 'email',
-    'LOGIN_FIELD': 'email',
+    "USER_EMAIL_FIELD": "email",
+    "LOGIN_FIELD": "email",
 }
-BASE_URL = "foodgrambestrecipe.ddns.net"
+BASE_URL = "https://foodgrambestrecipe.ddns.net"
