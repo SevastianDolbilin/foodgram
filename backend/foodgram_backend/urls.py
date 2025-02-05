@@ -2,43 +2,23 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from recipe.views import IngredientViewSet, RecipeViewSet, TagViewSet
-from rest_framework.routers import DefaultRouter
-from shopping.views import FavoriteViewSet, ShoppingCartViewSet
-from users.views import CustomUserViewSet
+from rest_framework import routers
 
-router = DefaultRouter()
-router.register("tags", TagViewSet, basename="tag")
-router.register("ingredients", IngredientViewSet, basename="ingredient")
-router.register("recipes", RecipeViewSet, basename="recipe")
-router.register("users", CustomUserViewSet, basename="user")
+router = routers.DefaultRouter()
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include(router.urls)),
+    path("api/", include("recipe.urls")),
     path("api/", include("djoser.urls")),
     path("api/auth/", include("djoser.urls.authtoken")),
-    path(
-        "api/auth/signup/",
-        CustomUserViewSet.as_view({"post": "create"}),
-        name="signup",
-    ),
-    path(
-        "api/recipes/<int:recipe_id>/shopping_cart/",
-        ShoppingCartViewSet.as_view({"post": "create", "delete": "destroy"}),
-        name="recipe-shopping-cart",
-    ),
-    path(
-        "api/recipes/<int:recipe_id>/favorite/",
-        FavoriteViewSet.as_view({"post": "create", "delete": "destroy"}),
-        name="recipe-favorite",
-    ),
 ]
 
+
 if settings.DEBUG:
-    urlpatterns += static(
+    urlpatterns = urlpatterns + static(
         settings.STATIC_URL, document_root=settings.STATIC_ROOT
     )
+if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
     )
