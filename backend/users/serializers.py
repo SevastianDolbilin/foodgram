@@ -4,7 +4,7 @@ import uuid
 from django.contrib.auth.models import User as DjoserUser
 from django.core.files.base import ContentFile
 from foodgram_backend.constants import NAME_LENGTH, REGISTRATION_NAME
-from recipe.models import Recipe
+from api.models import Recipe
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
