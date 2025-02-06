@@ -7,7 +7,7 @@ SECRET_KEY = "p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs"
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "foodgrambestrecipe.ddns.net"]
+ALLOWED_HOSTS = ["123.123.123.123", "foodgrambestrecipe.ddns.net"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
