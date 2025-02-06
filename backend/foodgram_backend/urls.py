@@ -16,20 +16,20 @@ router.register("users", CustomUserViewSet, basename="user")
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include(router.urls)),
-    path("api/auth/", include("djoser.urls")),
-    path("api/auth/token", include("djoser.urls.authtoken")),
+    path("auth/", include("djoser.urls")),
+    path("auth/token", include("djoser.urls.authtoken")),
     path(
-        "api/auth/signup/",
+        "auth/signup/",
         CustomUserViewSet.as_view({"post": "create"}),
         name="signup",
     ),
     path(
-        "/recipes/<int:recipe_id>/shopping_cart/",
+        "recipes/<int:recipe_id>/shopping_cart/",
         ShoppingCartViewSet.as_view({"post": "create", "delete": "destroy"}),
         name="recipe-shopping-cart",
     ),
     path(
-        "/recipes/<int:recipe_id>/favorite/",
+        "recipes/<int:recipe_id>/favorite/",
         FavoriteViewSet.as_view({"post": "create", "delete": "destroy"}),
         name="recipe-favorite",
     ),
