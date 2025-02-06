@@ -15,7 +15,7 @@ router.register("users", CustomUserViewSet, basename="user")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include(router.urls)),  # добавлен слэш
+    path("api/", include(router.urls)),
     path("api/auth/", include("djoser.urls")),
     path("api/auth/token", include("djoser.urls.authtoken")),
     path(
