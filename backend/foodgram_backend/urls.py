@@ -15,7 +15,7 @@ router.register("users", CustomUserViewSet, basename="user")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include(router.urls)),
+    path("", include(router.urls)),
     path("api/auth/", include("djoser.urls")),
     path("api/auth/token", include("djoser.urls.authtoken")),
     path(
@@ -24,12 +24,12 @@ urlpatterns = [
         name="signup",
     ),
     path(
-        "api/recipes/<int:recipe_id>/shopping_cart/",
+        "/recipes/<int:recipe_id>/shopping_cart/",
         ShoppingCartViewSet.as_view({"post": "create", "delete": "destroy"}),
         name="recipe-shopping-cart",
     ),
     path(
-        "api/recipes/<int:recipe_id>/favorite/",
+        "/recipes/<int:recipe_id>/favorite/",
         FavoriteViewSet.as_view({"post": "create", "delete": "destroy"}),
         name="recipe-favorite",
     ),
