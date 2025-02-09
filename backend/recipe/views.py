@@ -115,25 +115,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=False, methods=["get"], url_path="download_shopping_cart"
     )
-    def download_shopping_cart(self, request, pk):
-        """Скачать список покуп в формате ТХТ."""
-        shopping_cart = ShoppingCart.objects.filter(user=request.user)
-        recipe = get_object_or_404(Recipe, pk=pk)
+    def download_shopping_cart(self, request):
+        """Подготавливает и возвращает файл со списком покупок в формате ТХТ"""
+
+        shopping_cart = request.user.shopping_cart.all()
 
         if not shopping_cart:
             return Response(
                 {"detail": "Список покупок пуст."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        shopping_list = [
-            f"{recipe.ingredients}"
-            f"({recipe.cooking_time} мин\n)" for item in shopping_cart
-        ]
+
+        shopping_list = []
+        for item in shopping_cart:
+            recipe = item.recipe
+            for ingredient in recipe.ingredients.all():
+                shopping_list.append(
+                    f"{ingredient.name} - {ingredient.amount}"
+                    f"{ingredient.measurement_unit}"
+                )
+
+        shopping_list_text = "\n".join(shopping_list)
+
+        # Отправляем файл пользователю
         response = HttpResponse(
-            "\n".join(shopping_list),
+            shopping_list_text,
             content_type="text/plain"
         )
-        response["Content-Disposition"] = (
-            'attachment filename="shopping_cart.txt"'
-        )
+        response[
+            "Content-Disposition"
+        ] = 'attachment; filename="shopping_cart.txt"'
+
         return response
