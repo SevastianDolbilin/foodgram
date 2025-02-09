@@ -125,7 +125,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         shopping_list = [
-            f"{item.recipe.ingredients}"
+            f"{item.recipe.ingredients.name}"
             f"({item.recipe.cooking_time} мин\n)" for item in shopping_cart
         ]
         response = HttpResponse(
