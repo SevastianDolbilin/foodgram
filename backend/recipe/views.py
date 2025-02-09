@@ -9,6 +9,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from shopping.models import ShoppingCart
 
 from .filters import RecipeFilter
 from .models import Ingredient, Recipe, Tag
@@ -115,34 +116,30 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=False, methods=["get"], url_path="download_shopping_cart"
     )
     def download_shopping_cart(self, request):
-        """Подготавливает и возвращает файл со списком покупок в формате ТХТ"""
+        """Скачать список покупок в формате TXT."""
+        shopping_cart = ShoppingCart.objects.filter(user=request.user)
 
-        shopping_cart = request.user.shopping_cart.all()
-
-        if not shopping_cart:
+        if not shopping_cart.exists():
             return Response(
                 {"detail": "Список покупок пуст."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        shopping_list = []
-        for item in shopping_cart:
-            recipe = item.recipe
-            for ingredient in recipe.ingredients.all():
-                shopping_list.append(
-                    f"{ingredient.name} - {ingredient.amount}"
-                    f"{ingredient.measurement_unit}"
-                )
+        shopping_list = [
+            (
+                f"{', '.join(ingredient.name for ingredient in recipe.all())} "
+                f"({recipe.cooking_time} мин)\n"
+            )
+            for item in shopping_cart
+            if (recipe := item.recipe.ingredients)
+        ]
 
-        shopping_list_text = "\n".join(shopping_list)
-
-        # Отправляем файл пользователю
         response = HttpResponse(
-            shopping_list_text,
+            "".join(shopping_list),
             content_type="text/plain"
         )
-        response[
-            "Content-Disposition"
-        ] = 'attachment; filename="shopping_cart.txt"'
+        response["Content-Disposition"] = (
+            'attachment; filename="Список_покупок.txt"'
+        )
 
         return response
