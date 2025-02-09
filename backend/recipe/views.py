@@ -115,9 +115,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=False, methods=["get"], url_path="download_shopping_cart"
     )
-    def download_shopping_cart(self, request):
+    def download_shopping_cart(self, request, pk):
         """Скачать список покуп в формате ТХТ."""
         shopping_cart = ShoppingCart.objects.filter(user=request.user)
+        recipe = get_object_or_404(Recipe, pk=pk)
 
         if not shopping_cart:
             return Response(
@@ -125,8 +126,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         shopping_list = [
-            f"{item.recipe.ingredients}"
-            f"({item.recipe.cooking_time} мин\n)" for item in shopping_cart
+            f"{recipe.ingredients}"
+            f"({recipe.cooking_time} мин\n)" for item in shopping_cart
         ]
         response = HttpResponse(
             "\n".join(shopping_list),
