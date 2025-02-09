@@ -116,30 +116,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=False, methods=["get"], url_path="download_shopping_cart"
     )
     def download_shopping_cart(self, request):
-        """Скачать список покупок в формате TXT."""
+        """Скачать список покуп в формате ТХТ."""
         shopping_cart = ShoppingCart.objects.filter(user=request.user)
 
-        if not shopping_cart.exists():
+        if not shopping_cart:
             return Response(
                 {"detail": "Список покупок пуст."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         shopping_list = [
-            (
-                f"{', '.join(ingredient.name for ingredient in recipe.all())} "
-                f"({recipe.cooking_time} мин)\n"
-            )
-            for item in shopping_cart
-            if (recipe := item.recipe.ingredients)
+            f"{item.recipe.ingredients}"
+            f"({item.recipe.cooking_time} мин\n)" for item in shopping_cart
         ]
-
         response = HttpResponse(
-            "".join(shopping_list),
+            "\n".join(shopping_list),
             content_type="text/plain"
         )
         response["Content-Disposition"] = (
-            'attachment; filename="Список_покупок.txt"'
+            'attachment filename="shopping_cart.txt"'
         )
-
         return response
