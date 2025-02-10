@@ -135,7 +135,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             for ingredient in ingredients:
                 shopping_list.append(
                     f"- {ingredient.ingredient.name}:"
-                    f"{ingredient.amount}" 
+                    f"{ingredient.amount}"
                     f"{ingredient.ingredient.measurement_unit}\n"
                 )
             shopping_list.append("\n")
