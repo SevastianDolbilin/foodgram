@@ -116,7 +116,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=False, methods=["get"], url_path="download_shopping_cart"
     )
     def download_shopping_cart(self, request):
-        """Скачать список покупок в формате ТХТ."""
+        """Скачать список покупок в формате TXT."""
 
         shopping_cart = ShoppingCart.objects.filter(user=request.user)
 
@@ -129,14 +129,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         shopping_list = []
         for item in shopping_cart:
             recipe = item.recipe
-            ingredients = recipe.ingredients.all()
+            ingredients = recipe.recipe_ingredients.all()
 
-            ingredients_names = ", ".join(
-                ingredient.name for ingredient in ingredients
-            )
-            shopping_list.append(
-                f"{ingredients_names} ({recipe.cooking_time} мин)\n"
-            )
+            shopping_list.append(f"{recipe.name}:\n")
+            for ingredient in ingredients:
+                shopping_list.append(
+                    f"- {ingredient.ingredient.name}:"
+                    f"{ingredient.amount}" 
+                    f"{ingredient.ingredient.measurement_unit}\n"
+                )
+            shopping_list.append("\n")
 
         response = HttpResponse(
             "".join(shopping_list),
