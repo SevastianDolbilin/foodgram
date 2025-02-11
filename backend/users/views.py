@@ -22,7 +22,7 @@ class CustomUserViewSet(UserViewSet):
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
             return [AllowAny()]
-        elif self.action in ["subscribe", "delete_subscribe"]:
+        elif self.action in ["subscribe", "delete_subscribe", "avatar"]:
             return [IsAuthenticated()]
         return super().get_permissions()
 
@@ -82,7 +82,7 @@ class CustomUserViewSet(UserViewSet):
         serializer = AuthorSerializer(user, context={"request": request})
         return Response(serializer.data)
 
-    @action(detail=False, methods=["put", "delete"], url_path="me/avatar/")
+    @action(detail=False, methods=["put", "delete"], url_path="me/avatar")
     def avatar(self, request):
         """Удаление аватара, получение ссылки на него."""
         user = request.user
