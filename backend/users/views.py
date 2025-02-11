@@ -82,7 +82,7 @@ class CustomUserViewSet(UserViewSet):
         serializer = AuthorSerializer(user, context={"request": request})
         return Response(serializer.data)
 
-    @action(detail=False, methods=["put", "delete"], url_path="me/avatar")
+    @action(detail=False, methods=["put", "delete"], url_path="me/avatar/")
     def avatar(self, request):
         """Удаление аватара, получение ссылки на него."""
         user = request.user
