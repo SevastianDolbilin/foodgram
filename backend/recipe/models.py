@@ -88,6 +88,7 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
+    """Промежуточная модель дял рецептов и ингредиентов."""
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,

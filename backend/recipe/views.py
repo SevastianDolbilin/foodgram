@@ -25,9 +25,11 @@ class BaseViewSet(
     mixins.ListModelMixin,
     GenericViewSet
 ):
+    """Базовый вьюсет для наследования."""
     permission_classes = [AllowAny]
 
     def list(self, request, *args, **kwargs):
+        """Переопределение метода get."""
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -42,16 +44,19 @@ class BaseViewSet(
 
 
 class TagViewSet(BaseViewSet):
+    """ViewSet тегов."""
     queryset = Tag.objects.all().order_by("name")
     serializer_class = TagSerializer
 
 
 class IngredientViewSet(BaseViewSet):
+    """ViewSet ингредиентов."""
     queryset = Ingredient.objects.all().order_by("name")
     serializer_class = IngredientSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """ViewSet рецептов."""
     queryset = Recipe.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
@@ -106,6 +111,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
+        """Получение ссылки на рецепт."""
         recipe = get_object_or_404(Recipe, pk=pk)
         base_url = settings.BASE_URL
         short_link = f"{base_url}/recipes/{recipe.id}"
@@ -134,9 +140,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             shopping_list.append(f"{recipe.name}:\n")
             for ingredient in ingredients:
                 shopping_list.append(
-                    f"- {ingredient.ingredient.name}:"
+                    f"- {ingredient.ingredient.name}: "
                     f"{ingredient.amount}"
-                    f"{ingredient.ingredient.measurement_unit}\n"
+                    f" {ingredient.ingredient.measurement_unit}\n"
                 )
             shopping_list.append("\n")
 

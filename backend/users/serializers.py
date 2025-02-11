@@ -14,11 +14,11 @@ from .models import Subscription, User, UserProfile
 class Base64ImageField(serializers.ImageField):
     """Кастомный тип поля для декодирования base64."""
     def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
+        if isinstance(data, str) and data.startswith("data:image"):
+            format, imgstr = data.split(";base64,")
+            ext = format.split("/")[-1]
             data = ContentFile(
-                base64.b64decode(imgstr), name=f'{uuid.uuid4()}.{ext}'
+                base64.b64decode(imgstr), name=f"{uuid.uuid4()}.{ext}"
             )
         return super().to_internal_value(data)
 
@@ -94,6 +94,7 @@ class SubscribeReadSerializator(serializers.ModelSerializer):
         ]
 
     def get_recipes(self, obj):
+        """Получение рецептов."""
         request = self.context.get("request")
         if not request:
             return []
@@ -158,11 +159,13 @@ class CustomUserCreateSerializer(serializers.ModelSerializer):
         ]
 
     def validate_email(self, value):
+        """Валидация почты."""
         if DjoserUser.objects.filter(email=value).exists():
             raise ValidationError("Пользователь с таким email уже существует.")
         return value
 
     def validate_username(self, value):
+        """Валидация имение пользователя."""
         if DjoserUser.objects.filter(username=value).exists():
             raise ValidationError(
                 "Пользователь с таким username уже существует."
@@ -170,6 +173,7 @@ class CustomUserCreateSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
+        """Создание пользователя."""
         user = DjoserUser.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],

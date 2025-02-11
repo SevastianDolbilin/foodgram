@@ -37,6 +37,7 @@ class Subscription(models.Model):
 
 
 class UserProfile(models.Model):
+    """Промежуточная модель пользователя."""
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="profile"
     )

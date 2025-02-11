@@ -77,12 +77,14 @@ class CustomUserViewSet(UserViewSet):
 
     @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
+        """Url путь для пользователя."""
         user = request.user
         serializer = AuthorSerializer(user, context={"request": request})
         return Response(serializer.data)
 
     @action(detail=False, methods=["put", "delete"], url_path="me/avatar")
     def avatar(self, request):
+        """Удаление аватара, получение ссылки на него."""
         user = request.user
         user_profile = user.profile
 
