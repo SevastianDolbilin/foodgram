@@ -30,10 +30,11 @@ class RecipeFilter(filters.FilterSet):
 
     def filter_in_shopping_cart(self, queryset, name, value):
         """
-        Фильтрует рецепты, которые находятся в списке покупок.
+        Фильтрует рецепты, которые находятся в списке покупок пользователя.
         """
-        if value:
-            return queryset.filter(shoppingcart__isnull=False).distinct()
+        user = self.request.user
+        if value and user.is_authenticated:
+            return queryset.filter(shoppingcart__user=user).distinct()
         return queryset
 
     def filter_favorited(self, queryset, name, value):

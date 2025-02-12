@@ -75,7 +75,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         """Проверка наличия рецепта в избранном у пользователя."""
-        user = self.request.user
+        user = self.context["request"].user
         if not user.is_authenticated:
             return False
         return Favorite.objects.filter(user=user, recipe=obj).exists()
