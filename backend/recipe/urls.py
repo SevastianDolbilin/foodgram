@@ -1,5 +1,6 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
 from shopping.views import FavoriteViewSet, ShoppingCartViewSet
 from users.views import CustomUserViewSet
 
@@ -13,10 +14,9 @@ router.register("users", CustomUserViewSet, basename="user")
 
 
 urlpatterns = [
-    path("", include(router.urls)),
 
     path(
-        "api/auth/signup/",
+        "auth/signup/",
         CustomUserViewSet.as_view({"post": "create"}),
         name="signup",
     ),
@@ -30,4 +30,5 @@ urlpatterns = [
         FavoriteViewSet.as_view({"post": "create", "delete": "destroy"}),
         name="recipe-favorite",
     ),
+    path("", include(router.urls)),
 ]

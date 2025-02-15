@@ -1,14 +1,14 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
 from shopping.models import ShoppingCart
 
 from .filters import RecipeFilter
@@ -16,8 +16,6 @@ from .models import Ingredient, Recipe, Tag
 from .permissions import Administrator, Anonymous, Author
 from .serializers import (IngredientSerializer, RecipeSerializer,
                           RecipeWriteSerializer, TagSerializer)
-
-User = get_user_model()
 
 
 class BaseViewSet(
@@ -27,6 +25,9 @@ class BaseViewSet(
 ):
     """Базовый вьюсет для наследования."""
     permission_classes = [AllowAny]
+    filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
+    search_fields = ["name"]
+    ordering = ["name"]
 
     def list(self, request, *args, **kwargs):
         """Переопределение метода get."""
@@ -34,24 +35,16 @@ class BaseViewSet(
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def get_queryset(self):
-        """Фильтрация по началу названия."""
-        queryset = super().get_queryset()
-        name = self.request.query_params.get("name")
-        if name:
-            queryset = queryset.filter(name__istartswith=name)
-        return queryset
-
 
 class TagViewSet(BaseViewSet):
     """ViewSet тегов."""
-    queryset = Tag.objects.all().order_by("name")
+    queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
 
 class IngredientViewSet(BaseViewSet):
     """ViewSet ингредиентов."""
-    queryset = Ingredient.objects.all().order_by("name")
+    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
 
 
@@ -61,31 +54,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-    def update(self, request, *args, **kwargs):
-        """Переопределенный метод update."""
-        recipe = self.get_object()
-        if recipe.author != request.user:
-            raise PermissionDenied("Вы не можете редактировать чужой рецепт.")
-        if "ingredients" not in request.data:
-            raise ValidationError(
-                "Поле ingredients обязательно для заполнения."
-            )
-        if "tags" not in request.data:
-            raise ValidationError("Поле tags обязательно для заполнения.")
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        """Переопределенный метод destroy (для коррекции разрешений)."""
-        recipe = self.get_object()
-        if recipe.author != request.user:
-            raise PermissionDenied("Вы не можете удалить чужой рецепт.")
-        return super().destroy(request, *args, **kwargs)
-
     def get_permissions(self):
         """Получение разрешения в зависимости от типа запроса."""
-        if self.request.method in ["POST", "PUT", "PATCH"]:
+        if self.request.method in ["POST"]:
             permission_classes = [IsAuthenticated]
-        elif self.request.method == "DELETE":
+        elif self.request.method in ["PUT", "PATCH", "DELETE"]:
             permission_classes = [Author, Administrator]
         else:
             permission_classes = [Anonymous]

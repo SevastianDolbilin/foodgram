@@ -1,7 +1,8 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
+from rest_framework import serializers
+
 from foodgram_backend.constants import VALIDATOR_COUNT
-from rest_framework import serializers, status
-from rest_framework.response import Response
 from shopping.models import Favorite, ShoppingCart
 from users.serializers import AuthorSerializer, Base64ImageField
 
@@ -144,6 +145,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             repeat_tags.add(tag.id)
         return tags
 
+    @transaction.atomic
     def _save_ingredients(self, recipe, ingredients):
         """Сохраняем ингредиенты для рецепта."""
         RecipeIngredient.objects.bulk_create(
@@ -159,16 +161,12 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             ]
         )
 
+    @transaction.atomic
     def create(self, validated_data):
         """Создание рецепта."""
         user = self.context["request"].user
         ingredients = validated_data.pop("ingredients", None)
         tags_data = validated_data.pop("tags")
-        if ingredients is None:
-            return Response(
-                {"detail": "Поля ingredients не может быть пустым."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         validated_data["author"] = user
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags_data)
@@ -176,6 +174,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         self._save_ingredients(recipe, ingredients)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         """Обновление рецепта."""
         ingredients = validated_data.pop("ingredients", None)

@@ -8,8 +8,7 @@ class RecipeFilter(filters.FilterSet):
     Фильтр для фильтрации по тегам, авторам, спискам покупок и избранным.
     """
 
-    author = filters.NumberFilter(field_name="author__id", lookup_expr="exact")
-    tags = filters.CharFilter(
+    tags = filters.ModelMultipleChoiceFilter(
         field_name="tags__slug", method="filter_by_tags", distinct=True
     )
     is_in_shopping_cart = filters.BooleanFilter(
