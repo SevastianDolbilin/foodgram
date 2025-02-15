@@ -1,11 +1,11 @@
-from django.contrib.auth.models import User as DjoserUser
-from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
+from drf_extra_fields.fields import Base64ImageField
+from django.contrib.auth.models import User as DjoserUser
+
 from foodgram_backend.constants import NAME_LENGTH, REGISTRATION_NAME
 from recipe.models import Recipe
-
 from .models import Subscription, User, UserProfile
 
 
