@@ -9,9 +9,9 @@ class RecipeFilter(filters.FilterSet):
     Фильтр для фильтрации по тегам, авторам, списку покупок и избранному.
     """
 
-    tags = filters.MultipleChoiceFilter(
+    tags = MultipleChoiceFilter(
         choices=[(tag.slug, tag.name) for tag in Tag.objects.all()],
-        field_name="tags__slug",  # Используем слаги для фильтрации
+        field_name="tags__slug",
         distinct=True
     )
 
