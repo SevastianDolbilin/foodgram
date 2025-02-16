@@ -24,15 +24,20 @@ class BaseViewSet(
 ):
     """Базовый вьюсет для наследования."""
     permission_classes = [AllowAny]
-    filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
-    search_fields = ["name"]
-    ordering = ["name"]
 
     def list(self, request, *args, **kwargs):
         """Переопределение метода get."""
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    def get_queryset(self):
+        """Фильтрация по началу названия."""
+        queryset = super().get_queryset()
+        name = self.request.query_params.get("name")
+        if name:
+            queryset = queryset.filter(name__istartswith=name)
+        return queryset
 
 
 class TagViewSet(BaseViewSet):
