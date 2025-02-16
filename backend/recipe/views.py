@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -8,8 +9,8 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from shopping.models import ShoppingCart
 
+from shopping.models import ShoppingCart
 from .filters import RecipeFilter
 from .models import Ingredient, Recipe, Tag
 from .permissions import Administrator, Anonymous, Author

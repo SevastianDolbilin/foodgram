@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 
 from .models import Subscription, User
 
+
 admin.site.unregister(User)
 
 
