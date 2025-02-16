@@ -12,7 +12,7 @@ from shopping.models import ShoppingCart
 
 from .filters import RecipeFilter
 from .models import Ingredient, Recipe, Tag
-from .permissions import Administrator, Anonymous, Author
+from .permissions import Anonymous, Author
 from .serializers import (IngredientSerializer, RecipeSerializer,
                           RecipeWriteSerializer, TagSerializer)
 
@@ -58,7 +58,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method in ["POST"]:
             permission_classes = [IsAuthenticated]
         elif self.request.method in ["PUT", "PATCH", "DELETE"]:
-            permission_classes = [Author, Administrator]
+            permission_classes = [Author]
         else:
             permission_classes = [Anonymous]
         return [permission() for permission in permission_classes]
