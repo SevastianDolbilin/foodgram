@@ -1,7 +1,7 @@
-from django_filters import AllValuesMultipleFilter
+from django_filters import ModelMultipleChoiceFilter
 from django_filters import rest_framework as filters
 
-from .models import Recipe
+from .models import Recipe, Tag
 
 
 class RecipeFilter(filters.FilterSet):
@@ -9,9 +9,12 @@ class RecipeFilter(filters.FilterSet):
     Фильтр для фильтрации по тегам, авторам, списку покупок и избранному.
     """
 
-    tags = AllValuesMultipleFilter(
-        field_name="tags__slug",
-        lookup_expr="in",
+    tags = ModelMultipleChoiceFilter(
+        queryset=Tag.objects.all(),
+        field_name="tags",
+        to_field_name="slug",
+        method="filter_by_tags",
+        distinct=True
     )
 
     is_in_shopping_cart = filters.BooleanFilter(
@@ -22,6 +25,12 @@ class RecipeFilter(filters.FilterSet):
     class Meta:
         model = Recipe
         fields = ["author", "tags", "is_in_shopping_cart", "is_favorited"]
+
+    def filter_by_tags(self, queryset, name, value):
+        """
+        Фильтрует рецепты по тегам.
+        """
+        return queryset.filter(tags__slug__in=value).distinct()
 
     def filter_in_shopping_cart(self, queryset, name, value):
         """
