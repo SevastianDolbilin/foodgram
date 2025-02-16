@@ -4,11 +4,10 @@ from .models import Recipe
 
 
 class RecipeFilter(filters.FilterSet):
-    """
-    Фильтр для фильтрации по тегам, авторам, спискам покупок и избранным.
-    """
+    """Кастомный фильтр для фильтрации по тегам, авторам, спискам покупок и избранным."""
 
-    tags = filters.ModelMultipleChoiceFilter(
+    author = filters.NumberFilter(field_name="author__id", lookup_expr="exact")
+    tags = filters.CharFilter(
         field_name="tags__slug", method="filter_by_tags", distinct=True
     )
     is_in_shopping_cart = filters.BooleanFilter(
@@ -29,11 +28,10 @@ class RecipeFilter(filters.FilterSet):
 
     def filter_in_shopping_cart(self, queryset, name, value):
         """
-        Фильтрует рецепты, которые находятся в списке покупок пользователя.
+        Фильтрует рецепты, которые находятся в списке покупок.
         """
-        user = self.request.user
-        if value and user.is_authenticated:
-            return queryset.filter(shoppingcart__user=user).distinct()
+        if value:
+            return queryset.filter(shoppingcart__isnull=False).distinct()
         return queryset
 
     def filter_favorited(self, queryset, name, value):

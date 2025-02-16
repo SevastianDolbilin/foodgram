@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -23,20 +24,15 @@ class BaseViewSet(
 ):
     """Базовый вьюсет для наследования."""
     permission_classes = [AllowAny]
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+    filter_fileds = ["name"]
+    ordering_fields = {"name"}
 
     def list(self, request, *args, **kwargs):
         """Переопределение метода get."""
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-    def get_queryset(self):
-        """Фильтрация по началу названия."""
-        queryset = super().get_queryset()
-        name = self.request.query_params.get("name")
-        if name:
-            queryset = queryset.filter(name__istartswith=name)
-        return queryset
 
 
 class TagViewSet(BaseViewSet):
