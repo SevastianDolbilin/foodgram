@@ -1,8 +1,7 @@
 from django.contrib import admin
+
 from foodgram_backend.constants import VALIDATOR_COUNT
 from shopping.models import Favorite
-
-
 from .models import Ingredient, Recipe, RecipeIngredient, Tag
 
 
