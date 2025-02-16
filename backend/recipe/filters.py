@@ -29,7 +29,7 @@ class RecipeFilter(filters.FilterSet):
         """
         Фильтрует рецепты по тегам.
         """
-        return queryset.filter(tags__slug__in=tags).distinct()
+        return queryset.filter(tags__slug__in=value).distinct()
 
     def filter_in_shopping_cart(self, queryset, name, value):
         """
