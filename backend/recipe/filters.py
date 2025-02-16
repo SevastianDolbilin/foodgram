@@ -6,7 +6,6 @@ from .models import Recipe
 class RecipeFilter(filters.FilterSet):
     """Кастомный фильтр для фильтрации по тегам, авторам, спискам покупок."""
 
-    author = filters.NumberFilter(field_name="author__id", lookup_expr="exact")
     tags = filters.CharFilter(
         field_name="tags__slug", method="filter_by_tags", distinct=True
     )
@@ -30,8 +29,9 @@ class RecipeFilter(filters.FilterSet):
         """
         Фильтрует рецепты, которые находятся в списке покупок.
         """
-        if value:
-            return queryset.filter(shoppingcart__isnull=False).distinct()
+        user = self.request.user
+        if value and user.is_authenticated:
+            return queryset.filter(shoppingcart__user=user).distinct()
         return queryset
 
     def filter_favorited(self, queryset, name, value):

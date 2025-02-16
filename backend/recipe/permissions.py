@@ -20,7 +20,7 @@ class Author(permissions.BasePermission):
         return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        return getattr(obj, "author", None)
+        return getattr(obj, "author", None) == request.user
 
 
 class IsAuthorOrAdminForPatch(permissions.BasePermission):

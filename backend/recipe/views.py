@@ -26,7 +26,7 @@ class BaseViewSet(
     permission_classes = [AllowAny]
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
     filter_fileds = ["name"]
-    ordering_fields = {"name"}
+    ordering_fields = ["name"]
 
     def list(self, request, *args, **kwargs):
         """Переопределение метода get."""
