@@ -1,14 +1,13 @@
+from djoser.views import UserViewSet
+from recipe.paginations import CustomPagination
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from djoser.views import UserViewSet
-from recipe.paginations import CustomPagination
 from .models import Subscription, User
-from .serializers import (
-    AuthorSerializer, AvatarSerializer, SubscribeSerializator
-)
+from .serializers import (AuthorSerializer, AvatarSerializer,
+                          SubscribeSerializator)
 
 
 class CustomUserViewSet(UserViewSet):
