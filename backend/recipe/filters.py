@@ -1,4 +1,3 @@
-from django_filters import MultipleChoiceFilter
 from django_filters import rest_framework as filters
 
 from .models import Recipe, Tag
@@ -9,9 +8,10 @@ class RecipeFilter(filters.FilterSet):
     Фильтр для фильтрации по тегам, авторам, списку покупок и избранному.
     """
 
-    tags = MultipleChoiceFilter(
-        choices=[(tag.slug, tag.name) for tag in Tag.objects.all()],
+    tags = filters.MultipleChoiceFilter(
+        queryset=Tag.objects.all(),
         field_name="tags__slug",
+        to_field_name="slug",
         distinct=True
     )
 
