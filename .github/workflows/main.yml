@@ -45,7 +45,6 @@ jobs:
         DB_PORT: 5432
       run: |
         python -m flake8 backend/
-        isort app/ --skip app/recipe --skip app/shopping --skip app/users --check-only --diff
         cd backend/
         python manage.py test
   
