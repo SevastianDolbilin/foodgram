@@ -1,4 +1,5 @@
-from django_filters import rest_framework as filters, AllValuesMultipleFilter
+from django_filters import AllValuesMultipleFilter
+from django_filters import rest_framework as filters
 
 from .models import Recipe
 
