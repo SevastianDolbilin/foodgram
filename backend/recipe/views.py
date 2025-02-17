@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -104,25 +106,32 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        shopping_list = []
-        for item in shopping_cart:
-            recipe = item.recipe
-            ingredients = recipe.recipe_ingredients.all()
+        recipes = Recipe.objects.filter(
+            shoppingcart__user=request.user
+        ).prefetch_related("recipe_ingredients__ingredient")
 
-            shopping_list.append(f"{recipe.name}:\n")
-            for ingredient in ingredients:
-                shopping_list.append(
-                    f"- {ingredient.ingredient.name}: "
-                    f"{ingredient.amount}"
-                    f" {ingredient.ingredient.measurement_unit}\n"
-                )
-            shopping_list.append("\n")
+        ingredient_totals = defaultdict(lambda: {"amount": 0, "unit": ""})
+
+        for recipe in recipes:
+            for ingredient in recipe.recipe_ingredients.all():
+                key = ingredient.ingredient.name
+                ingredient_totals[key]["amount"] += ingredient.amount
+                ingredient_totals[key][
+                    "unit"
+                ] = ingredient.ingredient.measurement_unit
+
+        # Формируем текстовый список
+        shopping_list = ["Список покупок:\n"]
+        for name, data in ingredient_totals.items():
+            shopping_list.append(
+                f"- {name}: {data['amount']} {data['unit']}\n"
+            )
 
         response = HttpResponse(
-            "".join(shopping_list),
-            content_type="text/plain"
+            "".join(shopping_list), content_type="text/plain"
         )
-        response["Content-Disposition"] = (
-            'attachment; filename="shopping_cart.txt"'
-        )
+        response[
+            "Content-Disposition"
+        ] = 'attachment; filename="shopping_list.txt"'
+
         return response
