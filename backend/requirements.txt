@@ -9,7 +9,6 @@ pytest-django==4.4.0
 pytest-pythonpath==0.7.3
 PyYAML==6.0
 gunicorn==20.1.0
-isort==5.13.2
 django-filter>=2.4.0,<22.1
 django-bootstrap5==2.0.0
 drf-extra-fields
