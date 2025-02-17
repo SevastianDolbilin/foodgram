@@ -10,6 +10,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
 from shopping.models import ShoppingCart
 
 from .filters import RecipeFilter
@@ -120,7 +121,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     "unit"
                 ] = ingredient.ingredient.measurement_unit
 
-        # Формируем текстовый список
         shopping_list = ["Список покупок:\n"]
         for name, data in ingredient_totals.items():
             shopping_list.append(

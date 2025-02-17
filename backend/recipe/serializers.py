@@ -1,7 +1,8 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from foodgram_backend.constants import VALIDATOR_COUNT
 from rest_framework import serializers
+
+from foodgram_backend.constants import VALIDATOR_COUNT
 from shopping.models import Favorite, ShoppingCart
 from users.serializers import AuthorSerializer, Base64ImageField
 
