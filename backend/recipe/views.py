@@ -118,7 +118,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for item in ingredient_totals:
             shopping_list.append(
                 f"- {item['ingredient__name']}: "
-                f"{item['total_amount']} {item['ingredient__measurement_unit']}"
+                f"{item['total_amount']} "
+                f"{item['ingredient__measurement_unit']}"
             )
 
         response = HttpResponse(
