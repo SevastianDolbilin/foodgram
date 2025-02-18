@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from django.conf import settings
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,7 +15,7 @@ from rest_framework.viewsets import GenericViewSet
 from shopping.models import ShoppingCart
 
 from .filters import RecipeFilter
-from .models import Ingredient, Recipe, Tag
+from .models import Ingredient, Recipe, RecipeIngredient, Tag
 from .permissions import Anonymous, Author
 from .serializers import (IngredientSerializer, RecipeSerializer,
                           RecipeWriteSerializer, TagSerializer)
@@ -107,24 +108,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        recipes = Recipe.objects.filter(
-            shoppingcart__user=request.user
-        ).prefetch_related("recipe_ingredients__ingredient")
-
-        ingredient_totals = defaultdict(lambda: {"amount": 0, "unit": ""})
-
-        for recipe in recipes:
-            for ingredient in recipe.recipe_ingredients.all():
-                key = ingredient.ingredient.name
-                ingredient_totals[key]["amount"] += ingredient.amount
-                ingredient_totals[key][
-                    "unit"
-                ] = ingredient.ingredient.measurement_unit
+        ingredient_totals = (
+            RecipeIngredient.objects.filter(
+                recipe__shoppingcart__user=request.user
+            ).values(
+                "ingredient__name", "ingredient__measurement_unit"
+            ).annotate(total_amount=Sum("amount"))
+        )
 
         shopping_list = ["Список покупок:\n"]
-        for name, data in ingredient_totals.items():
+        for item in ingredient_totals:
             shopping_list.append(
-                f"- {name}: {data['amount']} {data['unit']}\n"
+                f"- {item['ingredient_name']}: "
+                f"{item['total_amount']} {item['ingredient_measurement_unit']}"
             )
 
         response = HttpResponse(
