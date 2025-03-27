@@ -66,11 +66,11 @@ cd your-repo
 docker-compose up -d
 ```
 
-3. Применение миграций и создание суперпользователя
+3. Применение миграций и создание суперпользователя 
     docker exec -it foodgram_backend python manage.py migrate
     docker exec -it foodgram_backend python manage.py createsuperuser
 
-4. Сборка статических файлов
+4. Сборка статических файлов 
     docker exec -it foodgram_backend python manage.py collectstatic --noinput
     После выполнения всех шагов проект будет готов к использованию.
 
