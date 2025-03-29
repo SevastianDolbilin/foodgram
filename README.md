@@ -1,4 +1,4 @@
-# Foodgram Best Recipe  
+# Foodgram
 
 Foodgram Best Recipe — это веб-приложение для публикации и поиска кулинарных рецептов.  
 
